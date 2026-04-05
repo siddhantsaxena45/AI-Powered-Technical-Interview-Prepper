@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://img.icons8.com/isometric/100/brain.png" width="120" />
   <h1>🚀 AI-PROCTOR: Industry-Grade Technical Assessment Platform</h1>
   <p><b>The Future of Autonomous Technical Recruitment & Preparation</b></p>
 
