@@ -82,7 +82,54 @@ The architectural decision to split the backend into two distinct microservices 
 - **Node.js/Express (Port 5000):** Excels at high-concurrency I/O operations, WebSocket connections, database reading/writing, and serving as the primary REST API.
 - **Python/FastAPI (Port 8000):** Excels at CPU-bound machine learning tasks. It handles audio processing (Pydub), model inference (Whisper), and LLM orchestration (Ollama).
 
-### 4.3 Data Flow Lifecycle
+### 4.3 System Architecture Diagram
+
+```mermaid
+graph TD
+    %% Client Layer
+    subgraph "Client Layer (React + Vite)"
+        UI[User Interface]
+        Monaco[Monaco Code Editor]
+        TFJS[Edge Proctoring TF.js]
+    end
+
+    %% Gateway Layer
+    subgraph "Gateway Layer (Node.js + Express)"
+        REST[REST API]
+        Socket[Socket.io Server]
+        Auth[Auth Middleware]
+    end
+
+    %% Data Layer
+    subgraph "Data Storage"
+        DB[(MongoDB)]
+    end
+
+    %% Intelligence Layer
+    subgraph "AI Microservice (FastAPI)"
+        PyRouter[FastAPI Router]
+        Whisper[OpenAI Whisper]
+        Ollama[Ollama / Mistral]
+    end
+
+    %% Connections Client <-> Node
+    UI <-->|HTTP Requests| REST
+    UI <-->|Real-time Sync| Socket
+    TFJS -.->|Violation Triggers| REST
+
+    %% Connections Node <-> DB
+    REST <--> DB
+    Socket <--> DB
+
+    %% Connections Node <-> Python
+    REST <-->|HTTP Post Audio/Code| PyRouter
+    
+    %% Python internals
+    PyRouter -->|Audio Blob| Whisper
+    PyRouter -->|Constructed Prompts| Ollama
+```
+
+### 4.4 Data Flow Lifecycle
 1. **Initiation:** The Client requests an interview session via REST to the Node.js API.
 2. **Setup:** Node.js creates a MongoDB session document and signals the Python service to generate the first adaptive question based on role parameters.
 3. **Delivery:** The question is delivered via Socket.io to the React client.
